@@ -6,6 +6,7 @@ from tkinter import messagebox
 
 
 class Article:
+    
     def __init__(self, id_article, nom, prix_vente, prix_achat, stock=0, date_ajout=None):
         if prix_vente <= 0 or prix_achat <= 0:
             raise ValueError("Les prix de vente et d'achat doivent être supérieurs à zéro.")
