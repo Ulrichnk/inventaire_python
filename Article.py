@@ -7,7 +7,7 @@ from tkinter import messagebox
 
 class Article:
     
-    def __init__(self, id_article, nom, prix_vente, prix_achat, stock=0, date_ajout=None):
+    def __init__(self, id_article, nom, prix_vente, prix_achat, stock=0, date=None):
         if prix_vente <= 0 or prix_achat <= 0:
             raise ValueError("Les prix de vente et d'achat doivent être supérieurs à zéro.")
         self.id_article = id_article
@@ -15,7 +15,7 @@ class Article:
         self.prix_vente = prix_vente
         self.prix_achat = prix_achat
         self.stock = stock
-        self.date_ajout = date_ajout or datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.date = date or datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     def __eq__(self, other):
         return (isinstance(other, Article) and
@@ -26,7 +26,7 @@ class Article:
 
     def __str__(self):
         return (f"{self.id_article}: {self.nom} - Vente: {self.prix_vente} - Achat: {self.prix_achat} - "
-                f"Stock: {self.stock} - Date d'ajout: {self.date_ajout}")
+                f"Stock: {self.stock} - Date d'ajout: {self.date}")
 
 
 class GestionStock:
@@ -48,7 +48,7 @@ class GestionStock:
                 reader = csv.DictReader(csvfile)
                 for row in reader:
                     article = Article(int(row["id_article"]), row["nom"], float(
-                        row["prix_vente"]), float(row["prix_achat"]), int(row["stock"]), row["date_ajout"])
+                        row["prix_vente"]), float(row["prix_achat"]), int(row["stock"]), row["date"])
                     self.articles.append(article)
         except FileNotFoundError:
             pass
@@ -74,7 +74,7 @@ class GestionStock:
             pass
 
     def sauvegarder_articles(self):
-        self._sauvegarder(self.FILENAME_ARTICLES, self.articles, ["id_article", "nom", "prix_vente", "prix_achat", "stock", "date_ajout"])
+        self._sauvegarder(self.FILENAME_ARTICLES, self.articles, ["id_article", "nom", "prix_vente", "prix_achat", "stock", "date"])
 
     def sauvegarder_ventes(self):
         self._sauvegarder(self.FILENAME_VENTES, self.ventes, ["id_article", "quantite", "date"])
@@ -365,7 +365,7 @@ class StockApp(tk.Tk):
         self.tree_articles.delete(*self.tree_articles.get_children())
         for article in self.gestion_stock.lister_articles():
             self.tree_articles.insert("", tk.END, values=(
-                article.id_article, article.nom, article.prix_vente, article.prix_achat, article.stock, article.date_ajout))
+                article.id_article, article.nom, article.prix_vente, article.prix_achat, article.stock, article.date))
 
     def update_ventes_listbox(self):
         self.tree_ventes.delete(*self.tree_ventes.get_children())
