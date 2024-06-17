@@ -205,6 +205,7 @@ class StockApp(tk.Tk):
         self.notebook.pack(expand=True, fill=tk.BOTH)
 
         self.frame_articles = ttk.Frame(self.notebook)
+        
         self.frame_ajout_vente = ttk.Frame(self.notebook)
         self.frame_ajout_achat = ttk.Frame(self.notebook)
         self.frame_inventaire = ttk.Frame(self.notebook)
@@ -220,25 +221,27 @@ class StockApp(tk.Tk):
         self.create_inventaire_widgets()
 
     def create_articles_widgets(self):
+        # self.frame_articles.grid(row=10, column=10, padx=10, pady=10)
+        
         lbl_nom_article = ttk.Label(self.frame_articles, text="Nom de l'article:")
         lbl_nom_article.grid(row=0, column=0, sticky=tk.E)
         self.ent_nom_article = ttk.Entry(self.frame_articles)
-        self.ent_nom_article.grid(row=0, column=1, columnspan=2, sticky=tk.W)
+        self.ent_nom_article.grid(row=0, column=1, columnspan=1, sticky=tk.W)
 
         lbl_prix_vente = ttk.Label(self.frame_articles, text="Prix de vente:")
         lbl_prix_vente.grid(row=1, column=0, sticky=tk.E)
         self.ent_prix_vente = ttk.Entry(self.frame_articles)
-        self.ent_prix_vente.grid(row=1, column=1, columnspan=2, sticky=tk.W)
+        self.ent_prix_vente.grid(row=1, column=1, columnspan=1, sticky=tk.W)
 
         lbl_prix_achat = ttk.Label(self.frame_articles, text="Prix d'achat:")
         lbl_prix_achat.grid(row=2, column=0, sticky=tk.E)
         self.ent_prix_achat = ttk.Entry(self.frame_articles)
-        self.ent_prix_achat.grid(row=2, column=1, columnspan=2, sticky=tk.W)
+        self.ent_prix_achat.grid(row=2, column=1, columnspan=1, sticky=tk.W)
 
         lbl_quantite_aa1 = ttk.Label(self.frame_articles, text="Quantité:")
         lbl_quantite_aa1.grid(row=1, column=3, sticky=tk.E)
         self.ent_quantite_aa1 = ttk.Entry(self.frame_articles)
-        self.ent_quantite_aa1.grid(row=1, column=4, columnspan=2, sticky=tk.W)
+        self.ent_quantite_aa1.grid(row=1, column=4, columnspan=1, sticky=tk.W)
 
         btn_ajouter_article = ttk.Button(self.frame_articles, text="Ajouter", command=self.add_article)
         btn_ajouter_article.grid(row=3, column=0)
@@ -250,19 +253,19 @@ class StockApp(tk.Tk):
         btn_supprimer_article.grid(row=3, column=2)
 
         btn_enregistrer_vente1 = ttk.Button(self.frame_articles, text="Enregistrer Vente", command=self.enregistrer_vente1)
-        btn_enregistrer_vente1.grid(row=3, columnspan=2, column=3)
+        btn_enregistrer_vente1.grid(row=3, columnspan=1, column=3)
 
         btn_enregistrer_achat1 = ttk.Button(self.frame_articles, text="Enregistrer achat", command=self.enregistrer_achat1)
-        btn_enregistrer_achat1.grid(row=3, columnspan=2, column=4)
+        btn_enregistrer_achat1.grid(row=3, columnspan=1, column=4)
         
         
-        lbl_rechercher = ttk.Label(self.frame_articles, text="rechercher:")
-        lbl_rechercher.grid(row=0, column=3, sticky=tk.E)
+        btn_rechercher = ttk.Button(self.frame_articles, text="rechercher", command=self.fct_rechercher)
+        btn_rechercher.grid(row=0, column=3)
         self.ent_rechercher = ttk.Entry(self.frame_articles)
-        self.ent_rechercher.grid(row=0, column=4, columnspan=1, sticky=tk.W)
+        self.ent_rechercher.grid(row=1, column=3, columnspan=1, sticky=tk.W)
 
         self.tree_articles = ttk.Treeview(self.frame_articles, columns=("ID", "Nom", "Prix de Vente", "Prix d'Achat", "Stock", "Date d'Ajout"), show="headings")
-        self.tree_articles.grid(row=4, column=0, columnspan=5, sticky="nsew")
+        self.tree_articles.grid(row=4, column=0, columnspan=9, sticky="nsew")
         self.tree_articles.heading("ID", text="ID")
         self.tree_articles.heading("Nom", text="Nom")
         self.tree_articles.heading("Prix de Vente", text="Prix de Vente")
@@ -273,6 +276,15 @@ class StockApp(tk.Tk):
         self.frame_articles.grid_rowconfigure(4, weight=1)
 
         self.update_articles_listbox()
+        
+    def fct_rechercher(self):
+        result=[]
+        try:
+            nom=self.ent_rechercher.get()
+            result=self.gestion_stock.rechercher_article_par_nom(nom)
+        except ValueError:
+            messagebox.showerror("Erreur", "Aucun article trouvé.")    
+        return result
 
     def create_ajout_vente_widgets(self):
         lbl_nom_article_va = ttk.Label(self.frame_ajout_vente, text="Nom de l'article:")
