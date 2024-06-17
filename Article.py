@@ -66,7 +66,7 @@ class GestionStock:
                 for row in reader:
                     transaction = {
                         "id_article": int(row["id_article"]),
-                        "quantite": int(row["quantite"]),
+                        "quantite":float(row["quantite"]),
                         "date": datetime.strptime(row["date"], "%Y-%m-%d %H:%M:%S")
                     }
                     transaction_list.append(transaction)
@@ -77,6 +77,7 @@ class GestionStock:
         self._sauvegarder(self.FILENAME_ARTICLES, self.articles, ["id_article", "nom", "prix_vente", "prix_achat", "stock", "date"])
 
     def sauvegarder_ventes(self):
+        print(self.ventes[0])
         self._sauvegarder(self.FILENAME_VENTES, self.ventes, ["id_article", "quantite", "date"])
 
     def sauvegarder_achats(self):
@@ -122,6 +123,34 @@ class GestionStock:
             self.sauvegarder_articles()
             return True
         return False
+    
+    def modifier_vente(self, id_article, quantite, date):
+        vente = next((vente for vente in self.ventes if vente["id_article"] == id_article and vente["date"].strftime("%Y-%m-%d %H:%M:%S")==date), None)
+        print(vente)
+        if quantite:
+            vente["id_article"]=id_article
+            vente["quantite"]=quantite
+            vente["date"]=datetime.now()
+            self.sauvegarder_ventes()
+            print(vente)
+            return True
+        return False
+    def modifier_achat(self, id_article, quantite, date):
+        # Trouver l'achat correspondant
+        achat = next((achat for achat in self.achats if achat["id_article"] == id_article and achat["date"].strftime("%Y-%m-%d %H:%M:%S") == date), None)
+        print(achat)
+        
+        if achat and quantite:
+            # Mettre à jour les champs de l'achat
+            achat["id_article"] = id_article
+            achat["quantite"] = quantite
+            achat["date"] = datetime.now()
+            self.sauvegarder_achats()
+            print(achat)
+            return True
+        
+        return False
+
 
     def rechercher_article(self, id_article):
         return next((article for article in self.articles if article.id_article == id_article), None)
@@ -221,27 +250,27 @@ class StockApp(tk.Tk):
         self.create_inventaire_widgets()
 
     def create_articles_widgets(self):
-        # self.frame_articles.grid(row=10, column=10, padx=10, pady=10)
+        # self.frame_articles.grid(row=0, column=0, padx=50, pady=50)
         
         lbl_nom_article = ttk.Label(self.frame_articles, text="Nom de l'article:")
         lbl_nom_article.grid(row=0, column=0, sticky=tk.E)
         self.ent_nom_article = ttk.Entry(self.frame_articles)
-        self.ent_nom_article.grid(row=0, column=1, columnspan=1, sticky=tk.W)
+        self.ent_nom_article.grid(row=0, column=1, sticky=tk.W)
 
         lbl_prix_vente = ttk.Label(self.frame_articles, text="Prix de vente:")
         lbl_prix_vente.grid(row=1, column=0, sticky=tk.E)
         self.ent_prix_vente = ttk.Entry(self.frame_articles)
-        self.ent_prix_vente.grid(row=1, column=1, columnspan=1, sticky=tk.W)
+        self.ent_prix_vente.grid(row=1, column=1, sticky=tk.W)
 
         lbl_prix_achat = ttk.Label(self.frame_articles, text="Prix d'achat:")
         lbl_prix_achat.grid(row=2, column=0, sticky=tk.E)
         self.ent_prix_achat = ttk.Entry(self.frame_articles)
-        self.ent_prix_achat.grid(row=2, column=1, columnspan=1, sticky=tk.W)
+        self.ent_prix_achat.grid(row=2, column=1, sticky=tk.W)
 
         lbl_quantite_aa1 = ttk.Label(self.frame_articles, text="Quantité:")
-        lbl_quantite_aa1.grid(row=1, column=3, sticky=tk.E)
+        lbl_quantite_aa1.grid(row=3, column=3, sticky=tk.E)
         self.ent_quantite_aa1 = ttk.Entry(self.frame_articles)
-        self.ent_quantite_aa1.grid(row=1, column=4, columnspan=1, sticky=tk.W)
+        self.ent_quantite_aa1.grid(row=3, column=4, sticky=tk.W)
 
         btn_ajouter_article = ttk.Button(self.frame_articles, text="Ajouter", command=self.add_article)
         btn_ajouter_article.grid(row=3, column=0)
@@ -253,27 +282,28 @@ class StockApp(tk.Tk):
         btn_supprimer_article.grid(row=3, column=2)
 
         btn_enregistrer_vente1 = ttk.Button(self.frame_articles, text="Enregistrer Vente", command=self.enregistrer_vente1)
-        btn_enregistrer_vente1.grid(row=3, columnspan=1, column=3)
+        btn_enregistrer_vente1.grid(row=3, column=5)
 
         btn_enregistrer_achat1 = ttk.Button(self.frame_articles, text="Enregistrer achat", command=self.enregistrer_achat1)
-        btn_enregistrer_achat1.grid(row=3, columnspan=1, column=4)
+        btn_enregistrer_achat1.grid(row=3, column=6)
         
         
         btn_rechercher = ttk.Button(self.frame_articles, text="rechercher", command=self.fct_rechercher)
         btn_rechercher.grid(row=0, column=3)
         self.ent_rechercher = ttk.Entry(self.frame_articles)
-        self.ent_rechercher.grid(row=1, column=3, columnspan=1, sticky=tk.W)
+        self.ent_rechercher.grid(row=1, column=3, sticky=tk.W)
 
         self.tree_articles = ttk.Treeview(self.frame_articles, columns=("ID", "Nom", "Prix de Vente", "Prix d'Achat", "Stock", "Date d'Ajout"), show="headings")
-        self.tree_articles.grid(row=4, column=0, columnspan=9, sticky="nsew")
+        self.tree_articles.grid(row=5, column=0, columnspan=8, sticky="nsew")
         self.tree_articles.heading("ID", text="ID")
         self.tree_articles.heading("Nom", text="Nom")
         self.tree_articles.heading("Prix de Vente", text="Prix de Vente")
         self.tree_articles.heading("Prix d'Achat", text="Prix d'Achat")
         self.tree_articles.heading("Stock", text="Stock")
         self.tree_articles.heading("Date d'Ajout", text="Date d'Ajout")
-        self.frame_articles.grid_columnconfigure(3, weight=1)
-        self.frame_articles.grid_rowconfigure(4, weight=1)
+        
+        self.frame_articles.grid_columnconfigure(7, weight=1)
+        self.frame_articles.grid_rowconfigure(5, weight=1)
 
         self.update_articles_listbox()
         
@@ -282,80 +312,101 @@ class StockApp(tk.Tk):
         try:
             nom=self.ent_rechercher.get()
             result=self.gestion_stock.rechercher_article_par_nom(nom)
+            if result:
+                    self.update_articles_listbox(result)
+                    self.ent_nom_article.delete(0, tk.END)
+                    self.ent_prix_vente.delete(0, tk.END)
+                    self.ent_prix_achat.delete(0, tk.END)
+                    # messagebox.showinfo("Succès", "Article ajouté avec succès.")
+            else:
+                    messagebox.showerror("Erreur", "L'article introuvable.")
         except ValueError:
             messagebox.showerror("Erreur", "Aucun article trouvé.")    
         return result
 
     def create_ajout_vente_widgets(self):
-        lbl_nom_article_va = ttk.Label(self.frame_ajout_vente, text="Nom de l'article:")
-        lbl_nom_article_va.grid(row=0, column=0, sticky=tk.E)
-        self.ent_nom_article_va = ttk.Entry(self.frame_ajout_vente)
-        self.ent_nom_article_va.grid(row=0, column=1, columnspan=2, sticky=tk.W)
+        # lbl_nom_article_va = ttk.Label(self.frame_ajout_vente, text="Nom de l'article:")
+        # lbl_nom_article_va.grid(row=0, column=0, sticky=tk.E)
+        # self.ent_nom_article_va = ttk.Entry(self.frame_ajout_vente)
+        # self.ent_nom_article_va.grid(row=0, column=1, sticky=tk.W)
 
-        lbl_prix_vente_va = ttk.Label(self.frame_ajout_vente, text="Prix de vente:")
-        lbl_prix_vente_va.grid(row=1, column=0, sticky=tk.E)
-        self.ent_prix_vente_va = ttk.Entry(self.frame_ajout_vente)
-        self.ent_prix_vente_va.grid(row=1, column=1, columnspan=2, sticky=tk.W)
+        # lbl_prix_vente_va = ttk.Label(self.frame_ajout_vente, text="Prix de vente:")
+        # lbl_prix_vente_va.grid(row=1, column=0, sticky=tk.E)
+        # self.ent_prix_vente_va = ttk.Entry(self.frame_ajout_vente)
+        # self.ent_prix_vente_va.grid(row=1, column=1, sticky=tk.W)
 
-        lbl_prix_achat_va = ttk.Label(self.frame_ajout_vente, text="Prix d'achat:")
-        lbl_prix_achat_va.grid(row=2, column=0, sticky=tk.E)
-        self.ent_prix_achat_va = ttk.Entry(self.frame_ajout_vente)
-        self.ent_prix_achat_va.grid(row=2, column=1, columnspan=2, sticky=tk.W)
+        # lbl_prix_achat_va = ttk.Label(self.frame_ajout_vente, text="Prix d'achat:")
+        # lbl_prix_achat_va.grid(row=2, column=0, sticky=tk.E)
+        # self.ent_prix_achat_va = ttk.Entry(self.frame_ajout_vente)
+        # self.ent_prix_achat_va.grid(row=2, column=1,  sticky=tk.W)
 
         lbl_quantite_va = ttk.Label(self.frame_ajout_vente, text="Quantité:")
         lbl_quantite_va.grid(row=3, column=0, sticky=tk.E)
         self.ent_quantite_va = ttk.Entry(self.frame_ajout_vente)
-        self.ent_quantite_va.grid(row=3, column=1, columnspan=2, sticky=tk.W)
+        self.ent_quantite_va.grid(row=3, column=1,  sticky=tk.W)
 
         btn_enregistrer_vente = ttk.Button(self.frame_ajout_vente, text="Enregistrer Vente", command=self.enregistrer_vente)
-        btn_enregistrer_vente.grid(row=4, column=0, columnspan=3)
+        btn_enregistrer_vente.grid(row=4, column=0)
+        
+        
+        btn_modifier_vente = ttk.Button(self.frame_ajout_vente, text="Modifier", command=self.modify_vente)
+        btn_modifier_vente.grid(row=4, column=1)
+        
+        # btn_rechercher = ttk.Button(self.frame_ajout_vente, text="rechercher", command=self.fct_rechercher)
+        # btn_rechercher.grid(row=0, column=3)
+        # self.ent_rechercher = ttk.Entry(self.frame_ajout_vente)
+        # self.ent_rechercher.grid(row=1, column=3, sticky=tk.W)
 
         self.tree_ventes = ttk.Treeview(self.frame_ajout_vente, columns=("ID", "Nom", "Quantité", "Prix de Vente", "Prix d'Achat", "Date"), show="headings")
-        self.tree_ventes.grid(row=5, column=0, columnspan=4, sticky="nsew")
+        self.tree_ventes.grid(row=5, column=0, columnspan=5, sticky="nsew")
         self.tree_ventes.heading("ID", text="ID")
         self.tree_ventes.heading("Nom", text="Nom")
         self.tree_ventes.heading("Quantité", text="Quantité")
         self.tree_ventes.heading("Prix de Vente", text="Prix de Vente")
         self.tree_ventes.heading("Prix d'Achat", text="Prix d'Achat")
         self.tree_ventes.heading("Date", text="Date")
-        self.frame_ajout_vente.grid_columnconfigure(3, weight=1)
+        
+        self.frame_ajout_vente.grid_columnconfigure(4, weight=1)
         self.frame_ajout_vente.grid_rowconfigure(5, weight=1)
 
         self.update_ventes_listbox()
 
     def create_ajout_achat_widgets(self):
-        lbl_nom_article_aa = ttk.Label(self.frame_ajout_achat, text="Nom de l'article:")
-        lbl_nom_article_aa.grid(row=0, column=0, sticky=tk.E)
-        self.ent_nom_article_aa = ttk.Entry(self.frame_ajout_achat)
-        self.ent_nom_article_aa.grid(row=0, column=1, columnspan=2, sticky=tk.W)
+        # lbl_nom_article_aa = ttk.Label(self.frame_ajout_achat, text="Nom de l'article:")
+        # lbl_nom_article_aa.grid(row=0, column=0, sticky=tk.E)
+        # self.ent_nom_article_aa = ttk.Entry(self.frame_ajout_achat)
+        # self.ent_nom_article_aa.grid(row=0, column=1,sticky=tk.W)
 
-        lbl_prix_vente_aa = ttk.Label(self.frame_ajout_achat, text="Prix de vente:")
-        lbl_prix_vente_aa.grid(row=1, column=0, sticky=tk.E)
-        self.ent_prix_vente_aa = ttk.Entry(self.frame_ajout_achat)
-        self.ent_prix_vente_aa.grid(row=1, column=1, columnspan=2, sticky=tk.W)
+        # lbl_prix_vente_aa = ttk.Label(self.frame_ajout_achat, text="Prix de vente:")
+        # lbl_prix_vente_aa.grid(row=1, column=0, sticky=tk.E)
+        # self.ent_prix_vente_aa = ttk.Entry(self.frame_ajout_achat)
+        # self.ent_prix_vente_aa.grid(row=1, column=1, sticky=tk.W)
 
-        lbl_prix_achat_aa = ttk.Label(self.frame_ajout_achat, text="Prix d'achat:")
-        lbl_prix_achat_aa.grid(row=2, column=0, sticky=tk.E)
-        self.ent_prix_achat_aa = ttk.Entry(self.frame_ajout_achat)
-        self.ent_prix_achat_aa.grid(row=2, column=1, columnspan=2, sticky=tk.W)
+        # lbl_prix_achat_aa = ttk.Label(self.frame_ajout_achat, text="Prix d'achat:")
+        # lbl_prix_achat_aa.grid(row=2, column=0, sticky=tk.E)
+        # self.ent_prix_achat_aa = ttk.Entry(self.frame_ajout_achat)
+        # self.ent_prix_achat_aa.grid(row=2, column=1,sticky=tk.W)
 
         lbl_quantite_aa = ttk.Label(self.frame_ajout_achat, text="Quantité:")
         lbl_quantite_aa.grid(row=3, column=0, sticky=tk.E)
         self.ent_quantite_aa = ttk.Entry(self.frame_ajout_achat)
-        self.ent_quantite_aa.grid(row=3, column=1, columnspan=2, sticky=tk.W)
+        self.ent_quantite_aa.grid(row=3, column=1, sticky=tk.W)
 
         btn_enregistrer_achat = ttk.Button(self.frame_ajout_achat, text="Enregistrer Achat", command=self.enregistrer_achat)
-        btn_enregistrer_achat.grid(row=4, column=0, columnspan=3)
+        btn_enregistrer_achat.grid(row=4, column=0)
 
+        btn_modifier_achat = ttk.Button(self.frame_ajout_achat, text="Modifier", command=self.modify_achat)
+        btn_modifier_achat.grid(row=4, column=1)
+        
         self.tree_achats = ttk.Treeview(self.frame_ajout_achat, columns=("ID", "Nom", "Quantité", "Prix de Vente", "Prix d'Achat", "Date"), show="headings")
-        self.tree_achats.grid(row=5, column=0, columnspan=4, sticky="nsew")
+        self.tree_achats.grid(row=5, column=0, columnspan=5, sticky="nsew")
         self.tree_achats.heading("ID", text="ID")
         self.tree_achats.heading("Nom", text="Nom")
         self.tree_achats.heading("Quantité", text="Quantité")
         self.tree_achats.heading("Prix de Vente", text="Prix de Vente")
         self.tree_achats.heading("Prix d'Achat", text="Prix d'Achat")
         self.tree_achats.heading("Date", text="Date")
-        self.frame_ajout_achat.grid_columnconfigure(3, weight=1)
+        self.frame_ajout_achat.grid_columnconfigure(4, weight=1)
         self.frame_ajout_achat.grid_rowconfigure(5, weight=1)
 
         self.update_achats_listbox()
@@ -388,7 +439,14 @@ class StockApp(tk.Tk):
         self.lbl_totaux = ttk.Label(self.frame_inventaire, text="")
         self.lbl_totaux.grid(row=4, column=0, columnspan=2)
 
-    def update_articles_listbox(self):
+    def update_articles_listbox(self,articles=None):
+        if articles:
+            self.tree_articles.delete(*self.tree_articles.get_children())
+            for article in articles:
+                self.tree_articles.insert("", tk.END, values=(
+                article.id_article, article.nom, article.prix_vente, article.prix_achat, article.stock, article.date))
+
+            return
         self.tree_articles.delete(*self.tree_articles.get_children())
         for article in self.gestion_stock.lister_articles():
             self.tree_articles.insert("", tk.END, values=(
@@ -452,6 +510,44 @@ class StockApp(tk.Tk):
         except ValueError:
             messagebox.showerror("Erreur", "Veuillez entrer des prix valides.")
 
+    def modify_vente(self):
+        selected_item = self.tree_ventes.selection()
+        if not selected_item:
+            messagebox.showerror("Erreur", "Veuillez sélectionner une vente.")
+            return
+        try:
+            article_id = self.tree_ventes.item(selected_item)["values"][0]
+            date=self.tree_ventes.item(selected_item)["values"][-1]
+            quantite=float(self.ent_quantite_va.get())
+            if date and article_id:
+                self.gestion_stock.modifier_vente(article_id, quantite, date)
+                self.update_ventes_listbox()
+                self.ent_quantite_va.delete(0, tk.END)
+                messagebox.showinfo("Succès", "Ventes modifié avec succès.")
+            else:
+                messagebox.showerror("Erreur", "Veuillez remplir tous les champs correctement.")
+        except ValueError:
+            messagebox.showerror("Erreur", "Veuillez entrer des quantitées.")
+            
+    def modify_achat(self):
+        selected_item = self.tree_achats.selection()
+        if not selected_item:
+            messagebox.showerror("Erreur", "Veuillez sélectionner un achat.")
+            return
+        try:
+            article_id = self.tree_achats.item(selected_item)["values"][0]
+            date = self.tree_achats.item(selected_item)["values"][-1]
+            quantite = float(self.ent_quantite_aa.get())
+            if date and article_id:
+                self.gestion_stock.modifier_achat(article_id, quantite, date)
+                self.update_achats_listbox()
+                self.ent_quantite_aa.delete(0, tk.END)
+                messagebox.showinfo("Succès", "Achat modifié avec succès.")
+            else:
+                messagebox.showerror("Erreur", "Veuillez remplir tous les champs correctement.")
+        except ValueError:
+            messagebox.showerror("Erreur", "Veuillez entrer des quantités.")
+
     def delete_article(self):
         selected_item = self.tree_articles.selection()
         if not selected_item:
@@ -472,7 +568,7 @@ class StockApp(tk.Tk):
         try:
             article = self.tree_articles.item(selected_item)["values"]
             nom_article = article[1]
-            quantite = int(self.ent_quantite_aa1.get())
+            quantite = float(self.ent_quantite_aa1.get())
             prix_vente = float(article[2])
             prix_achat = float(article[3])
             result = self.gestion_stock.enregistrer_vente(nom_article, prix_vente, prix_achat, quantite)
@@ -493,7 +589,7 @@ class StockApp(tk.Tk):
         try:
             article = self.tree_articles.item(selected_item)["values"]
             nom_article = article[1]
-            quantite = int(self.ent_quantite_aa1.get())
+            quantite =float(self.ent_quantite_aa1.get())
             prix_vente = float(article[2])
             prix_achat = float(article[3])
             result = self.gestion_stock.enregistrer_achat(nom_article, prix_vente, prix_achat, quantite)
@@ -509,7 +605,7 @@ class StockApp(tk.Tk):
     def enregistrer_vente(self):
         try:
             nom_article = self.ent_nom_article_va.get()
-            quantite = int(self.ent_quantite_va.get())
+            quantite = float(self.ent_quantite_va.get())
             prix_vente = float(self.ent_prix_vente_va.get())
             prix_achat = float(self.ent_prix_achat_va.get())
             result = self.gestion_stock.enregistrer_vente(nom_article, prix_vente, prix_achat, quantite)
@@ -528,7 +624,7 @@ class StockApp(tk.Tk):
     def enregistrer_achat(self):
         try:
             nom_article = self.ent_nom_article_aa.get()
-            quantite = int(self.ent_quantite_aa.get())
+            quantite = float(self.ent_quantite_aa.get())
             prix_achat = float(self.ent_prix_achat_aa.get())
             prix_vente = float(self.ent_prix_vente_aa.get())
             result = self.gestion_stock.enregistrer_achat(nom_article, prix_vente, prix_achat, quantite)
@@ -598,12 +694,59 @@ class StockApp(tk.Tk):
 
 
 
+class LoginUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Connexion")
 
+        # Configuration de la grille
+        self.root.grid_columnconfigure(0, weight=1)
+        self.root.grid_columnconfigure(1, weight=1)
 
+        # Nom d'utilisateur
+        self.lbl_username = tk.Label(self.root, text="Nom d'utilisateur")
+        self.lbl_username.grid(row=0, column=0, padx=10, pady=10, sticky=tk.E)
 
+        self.ent_username = tk.Entry(self.root)
+        self.ent_username.grid(row=0, column=1, padx=10, pady=10, sticky=tk.W)
 
+        # Mot de passe
+        self.lbl_password = tk.Label(self.root, text="Mot de passe")
+        self.lbl_password.grid(row=1, column=0, padx=10, pady=10, sticky=tk.E)
+
+        self.ent_password = tk.Entry(self.root, show="*")
+        self.ent_password.grid(row=1, column=1, padx=10, pady=10, sticky=tk.W)
+
+        # Bouton de connexion
+        self.btn_login = tk.Button(self.root, text="Connexion", command=self.login)
+        self.btn_login.grid(row=2, column=0, columnspan=2, pady=10)
+
+    def login(self):
+        username = self.ent_username.get()
+        password = self.ent_password.get()
+
+        # Logique de validation de connexion
+        if username == "admin" and password == "admin":
+            messagebox.showinfo("Succès", "Connexion réussie!")
+            self.root.destroy()  # Fermer la fenêtre de connexion
+            main_app()
+        else:
+            messagebox.showerror("Erreur", "Nom d'utilisateur ou mot de passe incorrect.")
+
+def main_app():
+    # root = tk.Tk()
+    app = StockApp()
+    app.mainloop()
+
+def login_app():
+    root = tk.Tk()
+    app = LoginUI(root)
+    root.mainloop()
 
 
 if __name__ == "__main__":
-    app = StockApp()
-    app.mainloop()
+    login_app()
+
+    
+    # app = StockApp()
+    # app.mainloop()
