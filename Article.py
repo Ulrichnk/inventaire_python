@@ -127,7 +127,16 @@ class GestionStock:
         return next((article for article in self.articles if article.id_article == id_article), None)
 
     def rechercher_article_par_nom(self, nom):
-        return [article for article in self.articles if nom.lower() in article.nom.lower()]
+        # return [article for article in self.articles if nom.lower() in article.nom.lower()]
+        resultats = []
+        # for nom in liste_noms:
+        #     if nom.startswith(noms_recherche):
+        #         resultats.append(nom)
+        # return resultats
+        for article in self.articles:
+            if article.nom.lower().startswith(nom):
+                resultats.append(article)
+        return resultats
 
     def lister_articles(self):
         return self.articles
@@ -245,6 +254,12 @@ class StockApp(tk.Tk):
 
         btn_enregistrer_achat1 = ttk.Button(self.frame_articles, text="Enregistrer achat", command=self.enregistrer_achat1)
         btn_enregistrer_achat1.grid(row=3, columnspan=2, column=4)
+        
+        
+        lbl_rechercher = ttk.Label(self.frame_articles, text="rechercher:")
+        lbl_rechercher.grid(row=0, column=3, sticky=tk.E)
+        self.ent_rechercher = ttk.Entry(self.frame_articles)
+        self.ent_rechercher.grid(row=0, column=4, columnspan=1, sticky=tk.W)
 
         self.tree_articles = ttk.Treeview(self.frame_articles, columns=("ID", "Nom", "Prix de Vente", "Prix d'Achat", "Stock", "Date d'Ajout"), show="headings")
         self.tree_articles.grid(row=4, column=0, columnspan=5, sticky="nsew")
@@ -567,6 +582,14 @@ class StockApp(tk.Tk):
 
         except ValueError:
             messagebox.showerror("Erreur", "Veuillez entrer des dates valides.")
+
+
+
+
+
+
+
+
 
 
 if __name__ == "__main__":
